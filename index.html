@@ -109,8 +109,15 @@ body.ctl .wrap{padding-bottom:104px}
 
 html,body{min-height:100%}
 .who{border:2px solid var(--ink2);background:transparent;color:var(--ink);border-radius:999px;min-height:36px;padding:0 12px;font-weight:800;font-size:.95rem;cursor:pointer;letter-spacing:0}
-.mynext{margin-top:8px;padding:8px 12px;border-radius:12px;background:var(--amber);color:var(--white)}
-.mynext b{font-size:1.05rem}.mynext .mn1{font-size:1.2rem;font-weight:800;line-height:1.25}
+.mynext{margin-top:6px;padding:4px 12px;border-radius:10px;background:var(--amber);color:var(--white);font-size:.95rem;line-height:1.3}
+.mynext b{font-weight:800}
+.hdr h1{font-size:1.3rem;margin:0}
+.hdr .cd{font-size:2.5rem;margin:0}
+.hdr .cd small{font-size:.85rem}
+.hdr .pill{font-size:1rem;padding:0 12px}
+.hdr .sub{font-size:.82rem;margin-top:2px}
+.hdr .next{font-size:.88rem;margin-top:2px}
+.hdr{padding-top:6px;padding-bottom:8px}
 .youdo{margin-top:8px;padding:8px 12px;border-radius:12px;background:var(--amber);color:var(--white)}
 .youdo b{font-size:1rem}.youdo ul{margin:2px 0 0;padding-left:1.1em}.youdo li{font-size:1.1rem;font-weight:600;margin:2px 0}
 .row.mine{box-shadow:none}
@@ -244,8 +251,7 @@ function mine(it){return personal()&&tasksFor(it,me).length>0;}
 function myNext(L,now){
   if(!personal()||L.cur<0)return '';
   for(var j=L.cur;j<N;j++){var t=tasksFor(D[j],me);if(t.length){var r=L.rs[j],isCur=j===L.cur;
-    var when=isCur?'現在輪到你':'你的下一件事 '+fmt(r.start,HS[j])+(r.start>now?'（還有 '+cdfmt(r.start-now)+'）':'');
-    return '<div class="mynext"><b>'+when+'</b><div class="mn1">'+esc(D[j][1])+'</div><div>'+t.map(function(w){return esc(w[1]);}).join('；')+'</div></div>';}}
+    return '<div class="mynext">'+(isCur?'<b>現在輪到你</b> ':'<b>你的下一件 '+fmt(r.start,HS[j])+'</b>'+(r.start>now?'（'+cdfmt(r.start-now)+'後）':'')+' ')+esc(D[j][1])+'</div>';}}
   return '<div class="mynext"><b>之後沒有你的工作</b></div>';
 }
 function header(L,now){
