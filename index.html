@@ -149,6 +149,34 @@ body.ctl .jump{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 .cur .sub{margin-top:8px;font-size:.95rem;color:#dbe7ff}
 .hint{font-size:.85rem;color:var(--done-fg);margin:0 0 10px}
 .trow .t[data-act]{cursor:pointer}
+
+/* ── 2026-11-06 晚：全部靠左對齊；時間 / 項目 / 人員同一個起點；成員與工作人員提醒 ── */
+.top,.cur,.card,.tbl,.trow{text-align:left}
+.top>.clock{text-align:left;cursor:default;-webkit-user-select:none;user-select:none}
+.chips{justify-content:flex-start}
+.chgs{align-items:flex-start}
+.rems{margin-top:10px;display:grid;gap:10px}
+.rems.sm{margin-top:8px;gap:6px}
+.rgh{display:inline-block;padding:0 10px;border-radius:999px;background:var(--sand2);color:var(--ink);font-size:.78rem;font-weight:800;letter-spacing:.08em;margin-bottom:3px}
+.rl{font-size:1.05rem;line-height:1.45;padding-left:2px}
+.rl b{font-weight:800}
+.card.rm{background:var(--sand);color:var(--ink)}
+.card.rm .lbl{color:var(--ink2);margin-bottom:2px}
+.card.nx .rgh{background:rgba(255,255,255,.16);color:var(--sand)}
+.card.nx .rl{font-size:.95rem}
+.trow{display:grid;grid-template-columns:5.6rem 1fr;column-gap:8px;align-items:start;padding:10px 12px}
+.trow .tc{font-weight:800;font-variant-numeric:tabular-nums}
+.trow .ti{font-weight:800;line-height:1.35}
+.trow .ti[data-act]{cursor:pointer}
+.trow .pp{margin-top:2px;font-size:.92rem}
+.trow .pp b{color:var(--done-fg)}
+.trow.now .pp b{color:#dbe7ff}
+.trow .rems{margin-top:6px}
+.trow .rgh{background:rgba(255,255,255,.14);color:inherit}
+.trow .rl{font-size:.9rem;font-weight:400}
+.trow.done{opacity:.8}
+.trow .ed,.trow .rb{grid-column:1/-1}
+.nb{display:inline-block;white-space:nowrap;margin-right:.8em}
 </style></head><body><div class="wrap" id="app"></div><script>
 (function(){
 /*LOGIC*/
@@ -232,12 +260,12 @@ function layout(st,now){
 }
 /*END*/
 
-var TOPIC='dc1107-ed437e97e56cfca0',PINH='2f8e12cbc4a3cb1f71e06c00a2b6b4af706448eda2c700c8d10275479f473add',SALT='dc-冬cry-1107';
+var TOPIC='dc1107-ed437e97e56cfca0',PINH='c4eeb86b4400f0064696fc1728bafb219547679fd8536ac6ff9c7e95960113fa',SALT='dc-冬cry-1107';
 var SIMS=[['11:29:30 開始前',[11,29,30]],['17:29:30 觀眾進場前',[17,29,30]],['18:23:30 最後入場準備',[18,23,30]],['20:08:30 表定結束前',[20,8,30]]];
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}return null;}
 var st={m:{},h:-1,v:0};
 var mode=ls('mode')==='practice'?'practice':'live',editor=ls('ctl')==='1';
-var expand=false,ptOpen=false,pinOpen=false,pinErr=false,editing=-1,lastCur=-2,net='',sendState='';
+var ckN=0,ckT=0,expand=false,ptOpen=false,pinOpen=false,pinErr=false,editing=-1,lastCur=-2,net='',sendState='';
 var pst=(function(){try{var j=JSON.parse(ls('pst')||'null');if(j&&j.m)return j;}catch(e){}return {m:{},h:-1};})();
 var pclk=(function(){try{var j=JSON.parse(ls('pclk')||'null');if(j&&j.base)return j;}catch(e){}return null;})();
 function PR(){return editor&&mode==='practice'&&!!pclk;}
@@ -294,9 +322,49 @@ function stageBlock(i,small,prev){
   return '<div class="onst'+(small?' sm':'')+'"><div class="chips">'+names+'</div>'+(prev?'<div class="chgs">'+diffChips(s,prev)+'</div>':'')+(s[1]?'<div class="note">'+esc(s[1])+'</div>':'')+'</div>';
 }
 
+// ── 每個項目的提醒：成員 / 工作人員。來源＝通告單（D 的工作清單）＋細流 PDF 備註 ──
+var MEMB=['黃玠','勝文','翡翠','孟萱','嘟嘟','凱同','團員','樂手'];
+function isMem(w){return w.split(/[、，,]/).every(function(x){return MEMB.indexOf(x.trim())>=0;});}
+var VA={m:[['勝文','先下 program']],s:[['怡君','勝文下 program 後再放影片']]};
+var VB={m:[['勝文','等怡君 cue']],s:[['怡君','cue 勝文']]};
+var RM={
+ 'S1':VA,'S2':VA,
+ 'S3':{m:VA.m,s:VA.s.concat([['燈光','演完燈全暗']])},
+ 'S4':{m:VB.m,s:VB.s.concat([['燈光','燈慢慢亮']])},
+ 'Intro':{s:[['燈光','燈暗']]},
+ 'Talking 2':{m:[['黃玠','上高腳椅']]},
+ 'S5':{m:[['嘟嘟','吹口哨']].concat(VB.m),s:VB.s},
+ 'S6':VA,
+ 'Talking 3':{m:[['黃玠','講完裝口琴']]},
+ 'S7':{m:[['黃玠','脫下口琴'],['嘟嘟','和聲']].concat(VB.m),s:VB.s},
+ 'S8':VB,
+ 'S9':VA,
+ '中場 VCR':{s:[['燈光','燈暗'],['怡君','播放 Break VCR']]},
+ 'S10':{s:[['燈光','燈亮']]},
+ 'Talking 6':{m:[['團員','先揹好琴']]},
+ 'S15':VA,
+ 'Talking 10':{m:[['黃玠','工商時間、提醒會後簽名']]}
+};
+function reminders(i){
+  var m=[],s=[];
+  D[i][3].forEach(function(w){(isMem(w[0])?m:s).push(w);});
+  var x=RM[stKey(D[i][1])];
+  if(x){(x.m||[]).forEach(function(w){m.push(w);});(x.s||[]).forEach(function(w){s.push(w);});}
+  return {m:m,s:s};
+}
+function remHtml(i,small){
+  var r=reminders(i);if(!r.m.length&&!r.s.length)return '';
+  var h='<div class="rems'+(small?' sm':'')+'">';
+  [['成員',r.m],['工作人員',r.s]].forEach(function(g){
+    if(!g[1].length)return;
+    h+='<div class="rg"><div class="rgh">'+g[0]+'</div>'+g[1].map(function(w){return '<div class="rl"><b>'+esc(w[0])+'</b>　'+esc(w[1])+'</div>';}).join('')+'</div>';
+  });
+  return h+'</div>';
+}
+
 function top(L,now){
   var sy=PR()?'':(net==='off'?'<span class="bad">離線，照原定時間自動走</span>':sendState==='fail'?'<span class="bad">送出失敗</span> <button data-act="retry">重試</button>':sendState==='send'?'送出中…':'');
-  var h='<div class="top" id="hdr"><div class="clock">'+fmt(now,true)+'</div>'+(sy?'<div class="sync">'+sy+'</div>':'');
+  var h='<div class="top" id="hdr"><div class="clock" data-act="ck">'+fmt(now,true)+'</div>'+(sy?'<div class="sync">'+sy+'</div>':'');
   if(L.cur<0)return h+'<div class="cur"><h1>全部完成</h1></div></div>';
   var r=L.rs[L.cur],it=D[L.cur],waiting=r.start>now,rem=waiting?r.start-now:(r.start+r.d)-now;
   var delay=(r.start-S[L.cur])+(r.held?Math.max(0,now-(r.start+r.d)):0);
@@ -306,10 +374,12 @@ function top(L,now){
   else h+='<span class="pill ok">準時</span>';
   h+='</div>'+(!stageOf(L.cur)&&it[2]?'<div class="sub">'+esc(it[2])+'</div>':'')+'</div>';
   if(stageOf(L.cur))h+='<div class="card on"><div class="lbl">台上</div>'+stageBlock(L.cur,false,prevStage(L.cur))+'</div>';
+  var rh=remHtml(L.cur,false);
+  if(rh)h+='<div class="card rm"><div class="lbl">提醒</div>'+rh+'</div>';
   var nx=-1;for(var j=L.cur+1;j<N;j++){if(L.rs[j].d>0){nx=j;break;}}
   if(nx>=0){
     var cs0=stageOf(L.cur);
-    h+='<div class="card nx"><div class="lbl">下一階段　'+fmt(L.rs[nx].start,HS[nx])+'</div><div class="ntt">'+esc(D[nx][1])+'</div>'+stageBlock(nx,true,cs0)+'</div>';
+    h+='<div class="card nx"><div class="lbl">下一階段　'+fmt(L.rs[nx].start,HS[nx])+'</div><div class="ntt">'+esc(D[nx][1])+'</div>'+stageBlock(nx,true,cs0)+remHtml(nx,true)+'</div>';
   }
   return h+'</div>';
 }
@@ -323,12 +393,15 @@ function table(L,now){
     var r=L.rs[i],state=i===L.cur?'now':r.done?'done':'up',sw=HS[i];
     if(it[4]!==last){last=it[4];h+='<div class="ph">'+esc(last)+'</div>';}
     var edt=editor&&state==='done'&&r.d>0;
-    h+='<section class="trow '+state+'" id="row-'+i+'"><div class="t"'+(edt?' data-act="edit" data-i="'+i+'"':'')+'><b>'+fmt(r.start,sw)+'</b>'+esc(it[1])+'</div>';
+    var so=stageOf(i);
+    h+='<section class="trow '+state+'" id="row-'+i+'"><div class="tc">'+fmt(r.start,sw)+'</div><div class="bd"><div class="ti"'+(edt?' data-act="edit" data-i="'+i+'"':'')+'>'+esc(it[1])+'</div>';
     if(Math.abs(r.start-S[i])>=5000)h+='<div class="orig">原定 '+fmt(S[i],sw)+'</div>';
+    if(so)h+='<div class="pp"><b>台上</b>　'+(so[0].length?so[0].map(function(n){return '<span class="nb">'+esc(n)+'</span>';}).join(''):'沒有人')+'</div>';
+    h+=remHtml(i,true);
     if(edt&&editing===i){
       h+='<div class="ed"><label for="ed">實際結束時間</label><input type="time" step="1" id="ed" value="'+fmt(r.end,true)+'"><div class="nudge"><button data-act="nudge" data-v="-60">−1 分</button><button data-act="nudge" data-v="-10">−10 秒</button><button data-act="nudge" data-v="10">+10 秒</button><button data-act="nudge" data-v="60">+1 分</button></div><div class="nudge"><button class="ok2" data-act="save" data-i="'+i+'">儲存，後面順延</button>'+(r.man?'<button class="rv" data-act="auto" data-i="'+i+'">還原自動</button>':'')+(i===lastDone?'<button class="rv" data-act="reopen" data-i="'+i+'">還沒結束</button>':'')+'<button class="rv" data-act="cancel">取消</button></div></div>';
     }
-    h+='</section>';
+    h+='</div></section>';
   });
   return h+'</div>';
 }
@@ -336,7 +409,6 @@ function tools(){
   var h='<div class="tools">';
   if(editor)h+='<button data-act="mode" data-m="'+(mode==='practice'?'live':'practice')+'">'+(mode==='practice'?'回到現場模式':'練習模式')+'</button><button data-act="logout">退出控制</button>';
   else if(pinOpen)h+='<form class="pin" id="pinform"><label for="pin">控制密碼</label><input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="6 位數"><button type="submit" class="ok2">確認</button><button type="button" data-act="pinclose" class="rv">取消</button>'+(pinErr?'<div class="bad">密碼不對</div>':'')+'</form>';
-  else h+='<button data-act="pinopen">我是控制者</button>';
   return h+'</div>';
 }
 function render(){
@@ -396,7 +468,7 @@ document.addEventListener('submit',function(e){
 });
 document.addEventListener('click',function(e){
   var b=e.target.closest('[data-act]');if(!b)return;var a=b.getAttribute('data-act'),now=NOW();
-  if(a==='pinopen'){pinOpen=true;pinErr=false;render();return;}
+  if(a==='ck'){var tn=Date.now();ckN=(tn-ckT<2500)?ckN+1:1;ckT=tn;if(ckN>=5&&!editor){ckN=0;pinOpen=true;pinErr=false;render();var pf=document.getElementById('pinform');if(pf)pf.scrollIntoView({block:'center'});}return;}
   if(a==='pinclose'){pinOpen=false;pinErr=false;render();return;}
   if(a==='expand'){expand=!expand;render();if(expand)showNow();return;}
   if(a==='ptoggle'){ptOpen=!ptOpen;render();return;}
@@ -425,6 +497,7 @@ var wl=null;function lock(){try{if(navigator.wakeLock&&document.visibilityState=
 document.addEventListener('visibilitychange',function(){lock();if(!document.hidden)pull();});
 lock();
 if(editor&&mode==='practice'&&!pclk)setClock(defClock(),5);
+if(location.hash==='#ctl'&&!editor)pinOpen=true;
 render();
 pull();listen();
 try{if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');}catch(e){}
