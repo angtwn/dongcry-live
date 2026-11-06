@@ -177,6 +177,40 @@ body.ctl .jump{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 .trow.done{opacity:.8}
 .trow .ed,.trow .rb{grid-column:1/-1}
 .nb{display:inline-block;white-space:nowrap;margin-right:.8em}
+
+/* ── 2026-11-07 修正：整體置中；人名欄與事項欄各自靠左、整塊置中；台上名單一行；時間表時間欄與內容欄齊頭 ── */
+.top,.cur,.card{text-align:center}
+.top>.clock{text-align:center}
+.chips{flex-wrap:nowrap;justify-content:center;gap:4px}
+.chip{flex:0 1 auto;min-width:0;white-space:nowrap;padding:3px 8px;font-size:clamp(.95rem,4.6vw,1.35rem)}
+.card.nx .chip{padding:2px 6px;font-size:clamp(.8rem,3.8vw,1.05rem)}
+.chgs{align-items:center}
+.rems{justify-items:center;text-align:left}
+.rg{display:flex;flex-direction:column;align-items:center;max-width:100%}
+.rgrid{display:grid;grid-template-columns:auto 1fr;column-gap:14px;row-gap:4px;width:fit-content;max-width:100%;text-align:left}
+.rn{font-weight:800;white-space:nowrap;font-size:1.05rem}
+.rt{font-size:1.05rem;line-height:1.45}
+.card.nx .rn,.card.nx .rt{font-size:.95rem}
+.trow{text-align:left}
+.trow .tc{font-size:1.1rem}
+.trow .ti{font-size:1.1rem}
+.trow .pp{margin-top:6px}
+.trow .pp .chips,.trow .pp{display:flex;gap:4px;flex-wrap:nowrap;justify-content:flex-start}
+.trow .pp .chip{font-size:clamp(.72rem,3.2vw,.9rem);padding:1px 6px}
+.trow .rems{justify-items:start}
+.trow .rg{align-items:flex-start}
+.trow .rn,.trow .rt{font-size:.9rem}
+.trow .rt{font-weight:400}
+/* 時間表：時間與項目同一行齊頭；台上與提醒佔滿整列，不擠在窄欄裡 */
+.trow .bd{display:contents}
+.trow .ti{grid-column:2}
+.trow .orig{grid-column:2}
+.trow .pp,.trow .rems,.trow .ed{grid-column:1/-1}
+.trow .pp{margin-top:8px}
+.trow .rems{margin-top:8px}
+.trow .rgrid{grid-template-columns:auto minmax(0,1fr)}
+.trow .rn{white-space:normal;max-width:9em}
+.trow .empty{font-size:.9rem;color:inherit;opacity:.8}
 </style></head><body><div class="wrap" id="app"></div><script>
 (function(){
 /*LOGIC*/
@@ -345,7 +379,37 @@ var RM={
  'S15':VA,
  'Talking 10':{m:[['黃玠','工商時間、提醒會後簽名']]}
 };
+
+// 公開顯示用：紅毛、queenie 的內部提醒不放外面，只留「在做什麼」；叫紅毛做的事改成直接對該成員的提醒
+var OV={
+ 'Sound Check：全員到場':{s:[['小戴','負責 Sound Check'],['queenie','行政組到場'],['紅毛','點名、備後台飲料零食']]},
+ '全體拜拜':{m:[['黃玠','主持、講話']],s:[['queenie','集合全體'],['紅毛','備香、水果、打火機']]},
+ '樂團彩排、影像組進場':{s:[['小戴','負責彩排'],['影像組','進場、系統作業'],['紅毛','確認周邊衣服尺寸、問飲料']]},
+ '對 cue、對位置':{s:[['小葵','16:30 前販售攤位擺設完成'],['紅毛','熟悉側台位置、接便當']]},
+ '第一次提醒上廁所':{m:[['全員','去上廁所']]},
+ '演出者對一次流程':{m:[['全員','對一次演出流程']],s:[['queenie','帶大家對流程']]},
+ '第二次提醒上廁所':{m:[['全員','再去一次廁所、到側台待命']]},
+ '側台就位':{m:[['黃玠','到定點']],s:[['queenie','帶黃玠到定點']]},
+ '最後入場準備':{m:[['勝文','先上台放 intro（loop 音樂）'],['樂手','勝文放 loop 後上台 setting'],['勝文','通知 PA：樂手 OK'],['黃玠','等 cue 上台']]},
+ 'S4':{m:[['勝文','等怡君 cue'],['凱同','下一段 Talking 2 先下台']],s:[['怡君','cue 勝文'],['燈光','燈慢慢亮']]},
+ 'Talking 2':{m:[['黃玠','上高腳椅'],['凱同','先下台休息']]},
+ 'Talking 4':{m:[['嘟嘟、孟萱','下台']]},
+ '中場 VCR':{m:[['全員','上廁所、喝水'],['全員（含凱同）','19:18 到側台準備上台']],s:[['燈光','燈暗'],['怡君','播放 Break VCR']]},
+ 'Talking 5':{m:[['凱同、嘟嘟、孟萱、翡翠、勝文','VCR 結束後一起上台']]},
+ 'S12':{m:[['翡翠','下一首先下台休息']]},
+ 'S13':{m:[['翡翠','下台休息'],['翡翠','19:37 回側台，Talking 7 上台']]},
+ 'S16':{m:[['嘟嘟','演完換琴'],['翡翠','演完下台休息']]},
+ 'S17':{m:[['翡翠','先換周邊 T'],['團員','20:08 準備下台、換周邊 T']]},
+ '表定演出結束':{m:[['團員','下台換周邊 T'],['黃玠','2 分鐘換周邊，自己上台']],s:[['queenie','協助黃玠換周邊']]},
+ 'Talking 9':{m:[['團員','快換好周邊 T']]},
+ 'S18':{m:[['團員','20:17 到側台待命']]},
+ 'Talking 10':{m:[['團員','上台'],['黃玠','工商時間、提醒會後簽名']]},
+ '演出結束':{m:[['全體','大合照、謝幕後再下台']]},
+ '提醒老師們去餐廳':{s:[['紅毛','通知已訂餐廳，請移動']]}
+};
+function ovKey(i){var t=D[i][1];return ON[stKey(t)]?stKey(t):t;}
 function reminders(i){
+  var ok=OV[ovKey(i)];if(ok)return {m:ok.m||[],s:ok.s||[]};
   var m=[],s=[];
   D[i][3].forEach(function(w){(isMem(w[0])?m:s).push(w);});
   var x=RM[stKey(D[i][1])];
@@ -355,9 +419,9 @@ function reminders(i){
 function remHtml(i,small){
   var r=reminders(i);if(!r.m.length&&!r.s.length)return '';
   var h='<div class="rems'+(small?' sm':'')+'">';
-  [['成員',r.m],['工作人員',r.s]].forEach(function(g){
+  [['演出人員',r.m],['工作人員',r.s]].forEach(function(g){
     if(!g[1].length)return;
-    h+='<div class="rg"><div class="rgh">'+g[0]+'</div>'+g[1].map(function(w){return '<div class="rl"><b>'+esc(w[0])+'</b>　'+esc(w[1])+'</div>';}).join('')+'</div>';
+    h+='<div class="rg"><div class="rgh">'+g[0]+'</div><div class="rgrid">'+g[1].map(function(w){return '<span class="rn">'+esc(w[0])+'</span><span class="rt">'+esc(w[1])+'</span>';}).join('')+'</div></div>';
   });
   return h+'</div>';
 }
@@ -396,7 +460,7 @@ function table(L,now){
     var so=stageOf(i);
     h+='<section class="trow '+state+'" id="row-'+i+'"><div class="tc">'+fmt(r.start,sw)+'</div><div class="bd"><div class="ti"'+(edt?' data-act="edit" data-i="'+i+'"':'')+'>'+esc(it[1])+'</div>';
     if(Math.abs(r.start-S[i])>=5000)h+='<div class="orig">原定 '+fmt(S[i],sw)+'</div>';
-    if(so)h+='<div class="pp"><b>台上</b>　'+(so[0].length?so[0].map(function(n){return '<span class="nb">'+esc(n)+'</span>';}).join(''):'沒有人')+'</div>';
+    if(so)h+='<div class="pp">'+(so[0].length?so[0].map(function(n){return '<span class="chip'+(n===HJ?' hj':'')+'">'+esc(n)+'</span>';}).join(''):'<span class="empty">台上沒有人</span>')+'</div>';
     h+=remHtml(i,true);
     if(edt&&editing===i){
       h+='<div class="ed"><label for="ed">實際結束時間</label><input type="time" step="1" id="ed" value="'+fmt(r.end,true)+'"><div class="nudge"><button data-act="nudge" data-v="-60">−1 分</button><button data-act="nudge" data-v="-10">−10 秒</button><button data-act="nudge" data-v="10">+10 秒</button><button data-act="nudge" data-v="60">+1 分</button></div><div class="nudge"><button class="ok2" data-act="save" data-i="'+i+'">儲存，後面順延</button>'+(r.man?'<button class="rv" data-act="auto" data-i="'+i+'">還原自動</button>':'')+(i===lastDone?'<button class="rv" data-act="reopen" data-i="'+i+'">還沒結束</button>':'')+'<button class="rv" data-act="cancel">取消</button></div></div>';
@@ -407,14 +471,14 @@ function table(L,now){
 }
 function tools(){
   var h='<div class="tools">';
-  if(editor)h+='<button data-act="mode" data-m="'+(mode==='practice'?'live':'practice')+'">'+(mode==='practice'?'回到現場模式':'練習模式')+'</button><button data-act="logout">退出控制</button>';
+  if(editor)h+='<button data-act="editlast">修改上一項完成時間</button><button data-act="mode" data-m="'+(mode==='practice'?'live':'practice')+'">'+(mode==='practice'?'回到現場模式':'練習模式')+'</button><button data-act="logout">退出控制</button>';
   else if(pinOpen)h+='<form class="pin" id="pinform"><label for="pin">控制密碼</label><input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="6 位數"><button type="submit" class="ok2">確認</button><button type="button" data-act="pinclose" class="rv">取消</button>'+(pinErr?'<div class="bad">密碼不對</div>':'')+'</form>';
   return h+'</div>';
 }
 function render(){
   var now=NOW(),L=layout(cs(),now),y=window.scrollY,h='';
-  if(PR()){h+='<div class="simb">練習模式　不會同步給任何人<br>練習時鐘 '+fmt(now,true)+'（×'+pclk.speed+'）<div class="sb"><button data-act="ptoggle">'+(ptOpen?'收起工具':'練習工具')+'</button><button data-act="mode" data-m="live">結束練習</button></div>';
-    if(ptOpen)h+='<div class="pt"><span>跳到</span>'+SIMS.map(function(s,i){return '<button data-act="psim" data-i="'+i+'">'+s[0].split(' ')[0]+'</button>';}).join('')+'</div><div class="pt"><span>速度</span>'+[1,5,20].map(function(v){return '<button data-act="pspeed" data-v="'+v+'" aria-pressed="'+(pclk.speed===v)+'">×'+v+'</button>';}).join('')+'</div><div class="pt"><button data-act="pff" data-v="1">快轉 1 分</button><button data-act="pff" data-v="5">快轉 5 分</button><button data-act="preset">重新開始</button></div>';
+  if(PR()){h+='<div class="simb">練習模式　不會同步給任何人<br>練習時鐘 '+fmt(now,true)+'（×'+pclk.speed+'）<div class="sb"><button data-act="preset">重新開始</button><button data-act="ptoggle">'+(ptOpen?'收起工具':'練習工具')+'</button><button data-act="mode" data-m="live">結束練習</button></div>';
+    if(ptOpen)h+='<div class="pt"><span>跳到</span>'+SIMS.map(function(s,i){return '<button data-act="psim" data-i="'+i+'">'+s[0].split(' ')[0]+'</button>';}).join('')+'</div><div class="pt"><span>速度</span>'+[1,5,20].map(function(v){return '<button data-act="pspeed" data-v="'+v+'" aria-pressed="'+(pclk.speed===v)+'">×'+v+'</button>';}).join('')+'</div><div class="pt"><button data-act="pff" data-v="1">快轉 1 分</button><button data-act="pff" data-v="5">快轉 5 分</button></div>';
     h+='</div>';}
   h+=top(L,now)+table(L,now)+tools();
   app.innerHTML=h;
@@ -471,6 +535,7 @@ document.addEventListener('click',function(e){
   if(a==='ck'){var tn=Date.now();ckN=(tn-ckT<2500)?ckN+1:1;ckT=tn;if(ckN>=5&&!editor){ckN=0;pinOpen=true;pinErr=false;render();var pf=document.getElementById('pinform');if(pf)pf.scrollIntoView({block:'center'});}return;}
   if(a==='pinclose'){pinOpen=false;pinErr=false;render();return;}
   if(a==='expand'){expand=!expand;render();if(expand)showNow();return;}
+  if(a==='editlast'){var L0=layout(cs(),NOW()),ld=-1;for(var q=0;q<(L0.cur<0?N:L0.cur);q++)if(L0.rs[q].d>0)ld=q;if(ld>=0){expand=true;editing=ld;render();var er=document.getElementById('row-'+ld);if(er)er.scrollIntoView({block:'center'});}return;}
   if(a==='ptoggle'){ptOpen=!ptOpen;render();return;}
   if(a==='logout'){editor=false;ls('ctl',null);mode='live';ls('mode','live');render();return;}
   if(a==='mode'){if(!editor)return;mode=b.getAttribute('data-m');ls('mode',mode);if(mode==='practice'&&!pclk)setClock(defClock(),5);editing=-1;lastCur=-2;render();return;}
