@@ -211,6 +211,23 @@ body.ctl .jump{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 .trow .rgrid{grid-template-columns:auto minmax(0,1fr)}
 .trow .rn{white-space:normal;max-width:9em}
 .trow .empty{font-size:.9rem;color:inherit;opacity:.8}
+
+/* ── 2026-11-07 晚：完整時間表與現場模式同一版式（置中；時間在上、項目在下；人名欄/事項欄各自靠左、整塊置中） ── */
+.tbl,.trow{text-align:center}
+.trow{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 12px}
+.trow .tc{font-size:1.15rem}
+.trow .ti{font-size:1.15rem;grid-column:auto}
+.trow .orig{grid-column:auto}
+.trow .pp{display:flex;justify-content:center;flex-wrap:nowrap;margin-top:8px;max-width:100%}
+.trow .rems{justify-items:center;width:100%;margin-top:8px}
+.trow .rg{align-items:center}
+.trow .rgrid{grid-template-columns:auto minmax(0,1fr);text-align:left}
+.trow .rn{white-space:nowrap;max-width:none;font-size:1rem}
+.trow .rt{font-size:1rem}
+.trow .ed{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px;width:100%}
+.trow .ed label{font-size:.85rem;opacity:.85}
+.trow .ed input{font-size:1.1rem;padding:6px 8px;text-align:center}
+.trow .nudge{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 </style></head><body><div class="wrap" id="app"></div><script>
 (function(){
 /*LOGIC*/
@@ -218,7 +235,7 @@ body.ctl .jump{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 var D=[
 ['11:30','器材進場、setting','',[['Legacy','音響器材到場 setting'],['音樂總監','到場']],'彩排前後','A'],
 ['12:30','Sound Check：全員到場','黃玠、樂手、行政組到場',[['小戴','負責 Sound Check'],['queenie','行政組到場'],['紅毛','點名：翡翠、孟萱、嘟嘟、凱同、勝文到齊；後台飲料零食放好']],'彩排前後'],
-['13:00','Sound Check：攝影組到場','',[['小孟、ARON、小李','攝影組 13:00 到場'],['VJ','13:30 到場']],'彩排前後'],
+['13:00','Sound Check：攝影組到場','',[['小孟','攝影組 13:00 到場'],['ARON','攝影組 13:00 到場'],['小李','攝影組 13:00 到場'],['VJ','13:30 到場']],'彩排前後'],
 ['13:30','全體拜拜','點真的香，不燒金紙',[['黃玠','主持、講話'],['queenie','集合全體'],['紅毛','備好香、水果、打火機，請大家來拜（不勉強）']],'彩排前後'],
 ['13:45','樂團彩排、影像組進場','全樂團',[['小戴','負責彩排'],['影像組','進場、系統作業'],['紅毛','彩排不用管；確認周邊衣服尺寸、問大家要不要訂飲料']],'彩排前後'],
 ['14:30','樂團彩排（續）','全樂團',[['小戴','負責彩排'],['小葵、JC、孟瑾','15:00 周邊到場']],'彩排前後'],
@@ -279,8 +296,8 @@ var E=S.map(function(s,i){return i<N-1?S[i+1]:s+20*60000;});
 function layout(st,now){
   var rs=[],prev=0,cur=-1;
   for(var i=0;i<N;i++){
-    var d=E[i]-S[i];
-    var start=i===0?S[0]:(AN[i]?Math.max(prev,S[i]):prev);
+    var d=(st.u&&st.u[i]!=null)?st.u[i]*1000:E[i]-S[i];
+    var start=(st.s&&st.s[i]!=null)?+st.s[i]:(i===0?S[0]:(AN[i]?Math.max(prev,S[i]):prev));
     var man=st.m[i]!=null,held=false,end;
     if(man){end=Math.max(+st.m[i],start);}
     else if(st.h===i){end=Math.max(start+d,now);held=true;}
@@ -297,10 +314,10 @@ function layout(st,now){
 var TOPIC='dc1107-ed437e97e56cfca0',PINH='c4eeb86b4400f0064696fc1728bafb219547679fd8536ac6ff9c7e95960113fa',SALT='dc-冬cry-1107';
 var SIMS=[['11:29:30 開始前',[11,29,30]],['17:29:30 觀眾進場前',[17,29,30]],['18:23:30 最後入場準備',[18,23,30]],['20:08:30 表定結束前',[20,8,30]]];
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}return null;}
-var st={m:{},h:-1,v:0};
+var st={m:{},h:-1,s:{},u:{},v:0};
 var mode=ls('mode')==='practice'?'practice':'live',editor=ls('ctl')==='1';
 var ckN=0,ckT=0,expand=false,ptOpen=false,pinOpen=false,pinErr=false,editing=-1,lastCur=-2,net='',sendState='';
-var pst=(function(){try{var j=JSON.parse(ls('pst')||'null');if(j&&j.m)return j;}catch(e){}return {m:{},h:-1};})();
+var pst=(function(){try{var j=JSON.parse(ls('pst')||'null');if(j&&j.m){j.s=j.s||{};j.u=j.u||{};return j;}}catch(e){}return {m:{},h:-1,s:{},u:{}};})();
 var pclk=(function(){try{var j=JSON.parse(ls('pclk')||'null');if(j&&j.base)return j;}catch(e){}return null;})();
 function PR(){return editor&&mode==='practice'&&!!pclk;}
 function cs(){return PR()?pst:st;}
@@ -416,12 +433,13 @@ function reminders(i){
   if(x){(x.m||[]).forEach(function(w){m.push(w);});(x.s||[]).forEach(function(w){s.push(w);});}
   return {m:m,s:s};
 }
+function splitN(a){var o=[];a.forEach(function(w){var n=w[0].split('、');if(n.length>=4)o.push(['樂團全員',w[1]]);else n.forEach(function(x){o.push([x,w[1]]);});});return o;}
 function remHtml(i,small){
   var r=reminders(i);if(!r.m.length&&!r.s.length)return '';
   var h='<div class="rems'+(small?' sm':'')+'">';
   [['演出人員',r.m],['工作人員',r.s]].forEach(function(g){
     if(!g[1].length)return;
-    h+='<div class="rg"><div class="rgh">'+g[0]+'</div><div class="rgrid">'+g[1].map(function(w){return '<span class="rn">'+esc(w[0])+'</span><span class="rt">'+esc(w[1])+'</span>';}).join('')+'</div></div>';
+    h+='<div class="rg"><div class="rgh">'+g[0]+'</div><div class="rgrid">'+splitN(g[1]).map(function(w){return '<span class="rn">'+esc(w[0])+'</span><span class="rt">'+esc(w[1])+'</span>';}).join('')+'</div></div>';
   });
   return h+'</div>';
 }
@@ -452,20 +470,23 @@ function table(L,now){
   if(!expand)return h;
   var last='',lastDone=-1;
   for(var k=0;k<(L.cur<0?N:L.cur);k++)if(L.rs[k].d>0)lastDone=k;
-  h+='<div class="tbl">'+(editor?'<div class="hint">點已完成的項目可修改結束時間</div>':'');
+  h+='<div class="tbl">'+(editor?'<div class="hint">點項目名稱可修改開始時間、預計花費、完成時間</div>':'');
   D.forEach(function(it,i){
     var r=L.rs[i],state=i===L.cur?'now':r.done?'done':'up',sw=HS[i];
     if(it[4]!==last){last=it[4];h+='<div class="ph">'+esc(last)+'</div>';}
-    var edt=editor&&state==='done'&&r.d>0;
+    var edt=editor;
     var so=stageOf(i);
-    h+='<section class="trow '+state+'" id="row-'+i+'"><div class="tc">'+fmt(r.start,sw)+'</div><div class="bd"><div class="ti"'+(edt?' data-act="edit" data-i="'+i+'"':'')+'>'+esc(it[1])+'</div>';
-    if(Math.abs(r.start-S[i])>=5000)h+='<div class="orig">原定 '+fmt(S[i],sw)+'</div>';
+    h+='<section class="trow '+state+'" id="row-'+i+'"><div class="tc">'+fmt(r.start,sw)+'</div><div class="ti"'+(edt?' data-act="edit" data-i="'+i+'"':'')+'>'+esc(it[1])+'</div>';
+    if(editor&&(Math.abs(r.start-S[i])>=5000))h+='<div class="orig">原定 '+fmt(S[i],sw)+'</div>';
     if(so)h+='<div class="pp">'+(so[0].length?so[0].map(function(n){return '<span class="chip'+(n===HJ?' hj':'')+'">'+esc(n)+'</span>';}).join(''):'<span class="empty">台上沒有人</span>')+'</div>';
     h+=remHtml(i,true);
     if(edt&&editing===i){
-      h+='<div class="ed"><label for="ed">實際結束時間</label><input type="time" step="1" id="ed" value="'+fmt(r.end,true)+'"><div class="nudge"><button data-act="nudge" data-v="-60">−1 分</button><button data-act="nudge" data-v="-10">−10 秒</button><button data-act="nudge" data-v="10">+10 秒</button><button data-act="nudge" data-v="60">+1 分</button></div><div class="nudge"><button class="ok2" data-act="save" data-i="'+i+'">儲存，後面順延</button>'+(r.man?'<button class="rv" data-act="auto" data-i="'+i+'">還原自動</button>':'')+(i===lastDone?'<button class="rv" data-act="reopen" data-i="'+i+'">還沒結束</button>':'')+'<button class="rv" data-act="cancel">取消</button></div></div>';
+      var X0=cs();
+      h+='<div class="ed"><label for="edS">開始時間</label><input type="time" step="1" id="edS" value="'+fmt(r.start,true)+'"><label for="edU">預計花費（分鐘）</label><input type="number" id="edU" min="0" step="0.5" inputmode="decimal" value="'+Math.round(r.d/3000)/20*1+'">';
+      if(state==='done'&&r.d>0)h+='<label for="ed">實際結束時間</label><input type="time" step="1" id="ed" value="'+fmt(r.end,true)+'"><div class="nudge"><button data-act="nudge" data-v="-60">−1 分</button><button data-act="nudge" data-v="-10">−10 秒</button><button data-act="nudge" data-v="10">+10 秒</button><button data-act="nudge" data-v="60">+1 分</button></div>';
+      h+='<div class="nudge"><button class="ok2" data-act="save" data-i="'+i+'">儲存，後面順延</button>'+((r.man||X0.s[i]!=null||X0.u[i]!=null)?'<button class="rv" data-act="auto" data-i="'+i+'">還原自動</button>':'')+(i===lastDone?'<button class="rv" data-act="reopen" data-i="'+i+'">還沒結束</button>':'')+'<button class="rv" data-act="cancel">取消</button></div></div>';
     }
-    h+='</div></section>';
+    h+='</section>';
   });
   return h+'</div>';
 }
@@ -503,7 +524,7 @@ function tick(){
 
 // ── 同步：控制者把進度送到 ntfy.sh 頻道，所有人即時收到 ──
 var BASEURL='https://ntfy.sh/'+TOPIC;
-function applyMsg(txt){try{var j=JSON.parse(txt);if(j&&typeof j.v==='number'&&j.v>st.v){st={m:j.m||{},h:typeof j.h==='number'?j.h:-1,v:j.v};return true;}}catch(e){}return false;}
+function applyMsg(txt){try{var j=JSON.parse(txt);if(j&&typeof j.v==='number'&&j.v>st.v){st={m:j.m||{},h:typeof j.h==='number'?j.h:-1,s:j.s||{},u:j.u||{},v:j.v};return true;}}catch(e){}return false;}
 function pull(){
   fetch(BASEURL+'/json?poll=1&since=all').then(function(r){return r.text();}).then(function(t){
     var ch=false;t.split('\n').forEach(function(l){if(!l)return;try{var o=JSON.parse(l);if(o.event==='message'&&applyMsg(o.message))ch=true;}catch(e){}});
@@ -519,7 +540,7 @@ function listen(){
 }
 function push(){
   st.v=Date.now();sendState='send';
-  fetch(BASEURL,{method:'POST',body:JSON.stringify({m:st.m,h:st.h,v:st.v})}).then(function(r){if(!r.ok)throw 0;sendState='';net='ok';}).catch(function(){sendState='fail';}).then(function(){tick();});
+  fetch(BASEURL,{method:'POST',body:JSON.stringify({m:st.m,h:st.h,s:st.s,u:st.u,v:st.v})}).then(function(r){if(!r.ok)throw 0;sendState='';net='ok';}).catch(function(){sendState='fail';}).then(function(){tick();});
 }
 function commit(){render();if(PR()){savePst();return;}push();}
 function sha(s){var b=new TextEncoder().encode(s);return crypto.subtle.digest('SHA-256',b).then(function(d){return Array.prototype.map.call(new Uint8Array(d),function(x){return ('0'+x.toString(16)).slice(-2);}).join('');});}
@@ -542,7 +563,7 @@ document.addEventListener('click',function(e){
   if(a==='psim'&&editor){var sm=SIMS[+b.getAttribute('data-i')][1];setClock(new Date(2026,10,7,sm[0],sm[1],sm[2]).getTime());render();return;}
   if(a==='pspeed'&&editor){setClock(NOW(),+b.getAttribute('data-v'));render();return;}
   if(a==='pff'&&editor){setClock(NOW()+(+b.getAttribute('data-v'))*60000);render();return;}
-  if(a==='preset'&&editor){pst={m:{},h:-1};savePst();setClock(defClock(),5);editing=-1;render();return;}
+  if(a==='preset'&&editor){pst={m:{},h:-1,s:{},u:{}};savePst();setClock(defClock(),5);editing=-1;render();return;}
   if(!editor)return;
   var X=cs(),L=layout(X,now),c=L.cur;
   if(a==='retry'){push();return;}
@@ -551,8 +572,13 @@ document.addEventListener('click',function(e){
   if(a==='edit'){editing=editing===+b.getAttribute('data-i')?-1:+b.getAttribute('data-i');render();return;}
   if(a==='cancel'){editing=-1;render();return;}
   if(a==='nudge'){var inp=document.getElementById('ed');if(inp&&inp.value){var v=sec(inp.value)/1000+(+b.getAttribute('data-v'));v=Math.max(0,Math.min(86399,v));inp.value=p2(Math.floor(v/3600))+':'+p2(Math.floor(v%3600/60))+':'+p2(v%60);}return;}
-  if(a==='save'){var i2=+b.getAttribute('data-i'),inp2=document.getElementById('ed');if(inp2&&inp2.value){X.m[i2]=BASE+sec(inp2.value);if(X.h===i2)X.h=-1;}editing=-1;commit();return;}
-  if(a==='auto'){var i3=+b.getAttribute('data-i');delete X.m[i3];editing=-1;commit();return;}
+  if(a==='save'){var i2=+b.getAttribute('data-i'),inp2=document.getElementById('ed'),iS=document.getElementById('edS'),iU=document.getElementById('edU');
+    X.s=X.s||{};X.u=X.u||{};var r2=L.rs[i2];
+    if(iS&&iS.value&&sec(iS.value)+BASE!==r2.start)X.s[i2]=BASE+sec(iS.value);
+    if(iU&&iU.value!==''&&Math.abs(+iU.value*60000-r2.d)>=1000)X.u[i2]=Math.round(+iU.value*60);
+    if(inp2&&inp2.value&&BASE+sec(inp2.value)!==r2.end){X.m[i2]=BASE+sec(inp2.value);if(X.h===i2)X.h=-1;}
+    editing=-1;commit();return;}
+  if(a==='auto'){var i3=+b.getAttribute('data-i');delete X.m[i3];if(X.s)delete X.s[i3];if(X.u)delete X.u[i3];editing=-1;commit();return;}
   if(a==='reopen'){var i4=+b.getAttribute('data-i');delete X.m[i4];X.h=i4;editing=-1;commit();return;}
 });
 setInterval(tick,1000);
